@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarClock, RefreshCw, TriangleAlert } from "lucide-react";
+import { CalendarClock, LoaderCircle, RefreshCw, TriangleAlert } from "lucide-react";
 
 import { VoteBar } from "@/components/VoteBar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,7 +12,7 @@ import { useVotes } from "@/hooks/useVotes";
 
 export function ResultsPage() {
   const { movies } = useMovies();
-  const { results, error, refreshResults } = useVotes();
+  const { results, error, isLoadingResults, refreshResults } = useVotes();
   const [refreshing, setRefreshing] = useState(false);
 
   const total = results.reduce((sum, r) => sum + r.count, 0);
@@ -46,9 +46,11 @@ export function ResultsPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-extrabold sm:text-3xl">Papan Hasil Voting</h1>
           <p className="text-muted-foreground">
-            {total > 0
-              ? `Total ${total} suara masuk. Auto-update tiap 30 detik.`
-              : "Belum ada suara masuk. Yuk vote duluan!"}
+            {isLoadingResults
+              ? "Muat data hasil... "
+              : total > 0
+                ? `Total ${total} suara masuk. Auto-update tiap 30 detik.`
+                : "Belum ada suara masuk. Yuk vote duluan!"}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => void handleRefresh()} disabled={refreshing}>
@@ -75,7 +77,17 @@ export function ResultsPage() {
         </Alert>
       ) : null}
 
-      {!error && ranked.length === 0 ? (
+      {!error && isLoadingResults ? (
+        <Card className="p-8 text-center">
+          <div className="mb-3 flex items-center justify-center gap-2 text-muted-foreground">
+            <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden="true" />
+            <span className="font-bold">Muat data hasil...</span>
+          </div>
+          <p className="text-sm text-muted-foreground">Bentar, lagi narik data suara dari server.</p>
+        </Card>
+      ) : null}
+
+      {!error && !isLoadingResults && ranked.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="mb-4 text-muted-foreground">Belum ada voting untuk hari ini.</p>
           <Button asChild>

@@ -30,6 +30,7 @@ interface VotingState {
   votes: Vote[];
   results: ResultItem[];
   error: string | null;
+  isLoadingResults: boolean;
   castVote: (payload: { movieId: string; voterName: string }) => Promise<Vote | null>;
   castVotes: (payloads: { movieId: string; voterName: string }[]) => Promise<VoteBatchResult>;
   refreshResults: () => Promise<void>;
@@ -50,6 +51,7 @@ export const useVotingStore = create<VotingState>((set, get) => ({
   votes: loadLocalVotes(),
   results: [],
   error: null,
+  isLoadingResults: false,
 
   castVote: async ({ movieId, voterName }) => {
     const name = voterName.trim() || "Anonim";
@@ -117,16 +119,19 @@ export const useVotingStore = create<VotingState>((set, get) => ({
   },
 
   refreshResults: async () => {
+    set({ isLoadingResults: true });
+
     const res = await getResults();
 
     if (res.ok && res.data) {
-      set({ results: res.data, error: null });
+      set({ results: res.data, error: null, isLoadingResults: false });
       return;
     }
 
     set({
       results: [],
       error: res.error ?? "Waduh, list vote-nya lagi error. Coba refresh atau balik lagi nanti ya!",
+      isLoadingResults: false,
     });
   },
 }));

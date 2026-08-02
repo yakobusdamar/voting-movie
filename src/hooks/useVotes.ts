@@ -6,6 +6,7 @@ export function useVotes() {
   const votes = useVotingStore((s) => s.votes);
   const results = useVotingStore((s) => s.results);
   const error = useVotingStore((s) => s.error);
+  const isLoadingResults = useVotingStore((s) => s.isLoadingResults);
   const castVote = useVotingStore((s) => s.castVote);
   const castVotes = useVotingStore((s) => s.castVotes);
   const refreshResults = useVotingStore((s) => s.refreshResults);
@@ -28,6 +29,7 @@ export function useVotes() {
     votes,
     results,
     error,
+    isLoadingResults,
     vote,
     voteMany,
     refreshResults,
