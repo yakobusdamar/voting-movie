@@ -173,11 +173,14 @@ npm run format         # prettier (jika dipakai)
 
 ## Deploy (GitHub Pages)
 
-- Base path GitHub Pages memakai `/repository-name/` → atur `base` di `vite.config.ts`.
+- Custom domain: file `public/CNAME` berisi domain (mis. `damarpradiptojati.my.id`).
+- Base path `/` (domain root) → `base: process.env.VITE_BASE_PATH || "/"` di `vite.config.ts`.
+  Kalau tanpa custom domain, override dengan `VITE_BASE_PATH=/<repo>/ npm run build`.
 - GitHub Actions `deploy.yml`: checkout → setup node → `npm ci` → `npm run build` →
-  deploy folder `dist` ke branch `gh-pages`.
-- Arahkan Settings → Pages → source ke branch `gh-pages`.
-- Selalu cek hasil build di branch `gh-pages` setelah deploy (cache browser).
+  deploy artefak `dist` via `actions/deploy-pages`.
+- Arahkan Settings → Pages → Source ke **GitHub Actions** + isi Custom domain.
+- DNS root domain → 4 A record `185.199.108.153` dkk (atau CNAME subdomain → `<user>.github.io`).
+- Selalu cek hasil build setelah deploy (cache browser).
 
 ## Tugas rutin yang perlu dilakukan agent
 

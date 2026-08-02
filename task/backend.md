@@ -1,24 +1,30 @@
 # Task Backend — n8n @ sumopod
 
-> Rujuk `docs/api.md` (spec endpoint) & `docs/data-model.md` (model data).
+> Rujuk `docs/api.md` (spec endpoint), `docs/data-model.md` (model data),
+> dan **`docs/n8n-setup.md`** (panduan langkah demi langkah setup n8n + Google Sheets).
 > Kredensial tidak pernah diletakkan di frontend/GitHub.
+> Penyimpanan: **Google Sheets** (2 sheet: `Movies`, `Votes`).
 
 ## Endpoint
 - [ ] `GET /webhook/voting/movies` — daftar film
+  - [ ] Baca sheet `Movies`
+  - [ ] Format ulang ke `Movie[]` (genre/platforms split koma)
   - [ ] Return `ApiResponse<Movie[]>`
 - [ ] `POST /webhook/voting/vote` — submit vote
   - [ ] Body `{ movieId, voterName }`
-  - [ ] Validasi `movieId` ada di daftar film
+  - [ ] Validasi `movieId` ada di sheet `Movies`
   - [ ] `voterName` opsional → default "Anonim"
-  - [ ] Simpan `createdAt` ISO dari sisi n8n
+  - [ ] Generate `id` + `createdAt` ISO di sisi n8n
+  - [ ] Append baris ke sheet `Votes`
   - [ ] Return `ApiResponse<Vote>`
 - [ ] `GET /webhook/voting/results` — rekap suara
+  - [ ] Baca sheet `Votes`, hitung count per `movieId`
+  - [ ] Join metadata dari sheet `Movies` (title, poster)
   - [ ] Return `[{ movieId, count, title?, poster? }]`
-  - [ ] Sertakan metadata film (biar frontend tidak double-fetch)
 
 ## Data
-- [ ] Buat struktur penyimpanan (built-in n8n / DB internal)
-- [ ] Import daftar film (dari `docs` / `src/data/movies.ts`)
+- [ ] Buat spreadsheet Google dengan sheet `Movies` + `Votes` (ikut template di `docs/n8n-setup.md`)
+- [ ] Import daftar film (dari `src/data/movies.ts`) ke sheet `Movies`
 - [ ] Verifikasi data film sesuai skema `Movie`
 
 ## Error Handling
