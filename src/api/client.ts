@@ -38,7 +38,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse
       };
     }
 
-    // n8n kadang balik objek mentah (bukan wrapper {ok,data}) — normalisasi
+    // n8n kadang balik objek mentah (bukan wrapper {ok,data}) — normalisasi.
+    // Body boleh object apa pun atau kosong; status 200 = sukses.
     if (body && typeof body === "object" && "ok" in body) {
       return body;
     }
