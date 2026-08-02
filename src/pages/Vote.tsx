@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarClock, Check, Loader2, PartyPopper } from "lucide-react";
+import { CalendarClock, Check, Loader2, PartyPopper, RefreshCw } from "lucide-react";
 
 import { RatingBadge } from "@/components/RatingBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,6 +12,11 @@ import { useMovies } from "@/hooks/useMovies";
 import { useVotes } from "@/hooks/useVotes";
 import { countVotesForName, MAX_VOTES_PER_PERSON } from "@/store/votingStore";
 
+interface SubmitOutcome {
+  success: string[];
+  failed: { movieId: string; title: string; error?: string }[];
+}
+
 export function VotePage() {
   const { movies } = useMovies();
   const { voteMany, votes, error } = useVotes();
@@ -19,22 +24,13 @@ export function VotePage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [voterName, setVoterName] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState<string[] | null>(null);
+  const [outcome, setOutcome] = useState<SubmitOutcome | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const usedVotes = countVotesForName(votes, voterName);
   const quotaLeft = Math.max(0, MAX_VOTES_PER_PERSON - usedVotes);
   const selectedCount = selected.size;
   const canSubmit = selectedCount > 0 && quotaLeft > 0;
-
-  function resetQuota() {
-    try {
-      localStorage.removeItem("omk-fx-votes");
-      window.location.reload();
-    } catch {
-      // abaikan
-    }
-  }
 
   function toggleMovie(id: string) {
     setSelected((prev) => {
@@ -48,45 +44,115 @@ export function VotePage() {
     });
   }
 
+  async function submitVotes(payloads: { movieId: string; voterName: string }[]) {
+    setSubmitting(true);
+    setSubmitError(null);
+    setOutcome(null);
+
+    const name = voterName.trim() || "Anonim";
+    const result = await voteMany(
+      payloads.map((p) => ({ ...p, voterName: name })),
+    );
+
+    setSubmitting(false);
+
+    const successTitles = movies
+      .filter((m) => result.success.some((v) => v.movieId === m.id))
+      .map((m) => m.title);
+
+    const failedWithTitle = result.failed.map((f) => ({
+      ...f,
+      title: movies.find((m) => m.id === f.movieId)?.title ?? f.movieId,
+    }));
+
+    if (successTitles.length === 0 && failedWithTitle.length === 0) {
+      setSubmitError(error ?? "Waduh, vote-nya gagal ke kirim. Coba lagi ya!");
+      return;
+    }
+
+    setOutcome({ success: successTitles, failed: failedWithTitle });
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
 
-    setSubmitting(true);
-    setSubmitError(null);
-
-    const name = voterName.trim() || "Anonim";
     const payloads = movies
       .filter((m) => selected.has(m.id))
-      .map((m) => ({ movieId: m.id, voterName: name }));
+      .map((m) => ({ movieId: m.id, voterName }));
 
-    const result = await voteMany(payloads);
-
-    setSubmitting(false);
-    if (result.length > 0) {
-      const titles = movies.filter((m) => result.some((v) => v.movieId === m.id)).map((m) => m.title);
-      setDone(titles);
-    } else {
-      setSubmitError(error ?? "Waduh, vote-nya gagal ke kirim. Coba lagi ya!");
-    }
+    await submitVotes(payloads);
   }
 
-  if (done) {
+  async function retryFailed() {
+    if (!outcome) return;
+    const payloads = outcome.failed.map((f) => ({ movieId: f.movieId, voterName }));
+    await submitVotes(payloads);
+  }
+
+  if (outcome) {
+    const allOk = outcome.failed.length === 0;
     return (
       <Card className="mx-auto max-w-lg text-center">
         <CardHeader>
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full border-2 border-neon-border bg-green-400 shadow-neobrutal">
-            <PartyPopper className="h-8 w-8" aria-hidden="true" />
+          <div
+            className={`mx-auto grid h-16 w-16 place-items-center rounded-full border-2 border-neon-border shadow-neobrutal ${
+              allOk ? "bg-green-400" : "bg-yellow-300"
+            }`}
+          >
+            {allOk ? (
+              <PartyPopper className="h-8 w-8" aria-hidden="true" />
+            ) : (
+              <RefreshCw className="h-8 w-8" aria-hidden="true" />
+            )}
           </div>
-          <CardTitle className="text-xl">Suara kamu masuk!</CardTitle>
+          <CardTitle className="text-xl">
+            {allOk ? "Suara kamu masuk!" : "Sebagian masuk, sebagian belum"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p>
-            Kamu memilih{" "}
-            <strong>{done.length > 1 ? `${done.length} film` : done[0]}</strong>. Nonton barengnya{" "}
-            <strong>{MOVIE_NIGHT.dateLabel}</strong> jam <strong>{MOVIE_NIGHT.timeLabel}</strong>,
-            jangan lupa!
-          </p>
+          {outcome.success.length > 0 ? (
+            <div className="rounded-sm border-2 border-neon-border bg-green-50 p-3 text-left">
+              <p className="mb-1 text-sm font-extrabold">✅ Berhasil ({outcome.success.length})</p>
+              <ul className="list-inside list-disc text-sm text-muted-foreground">
+                {outcome.success.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {outcome.failed.length > 0 ? (
+            <div className="rounded-sm border-2 border-neon-border bg-yellow-50 p-3 text-left">
+              <p className="mb-1 text-sm font-extrabold">❌ Gagal ({outcome.failed.length})</p>
+              <ul className="list-inside list-disc text-sm text-muted-foreground">
+                {outcome.failed.map((f) => (
+                  <li key={f.movieId}>
+                    {f.title}
+                    {f.error ? ` — ${f.error}` : ""}
+                  </li>
+                ))}
+              </ul>
+              <Button variant="outline" size="sm" className="mt-3 w-full" onClick={() => void retryFailed()} disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    Nyoba lagi...
+                  </>
+                ) : (
+                  "Coba Lagi yang Gagal"
+                )}
+              </Button>
+            </div>
+          ) : null}
+
+          {allOk ? (
+            <p>
+              Nonton barengnya <strong>{MOVIE_NIGHT.dateLabel}</strong> jam{" "}
+              <strong>{MOVIE_NIGHT.timeLabel}</strong>, jangan lupa!
+            </p>
+          ) : null}
+
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button asChild>
               <Link to="/results">Lihat Hasil</Link>
@@ -175,7 +241,7 @@ export function VotePage() {
           </CardTitle>
           {selectedCount > 0 ? (
             <p className="text-sm text-muted-foreground">
-              Sisa kuota: {quotaLeft} dari {MAX_VOTES_PER_PERSON} · {usedVotes} vote tersimpan untuk nama ini
+              Sisa kuota: {quotaLeft} dari {MAX_VOTES_PER_PERSON}
             </p>
           ) : null}
         </CardHeader>
@@ -194,15 +260,6 @@ export function VotePage() {
                 autoComplete="name"
               />
             </div>
-            {usedVotes > 0 ? (
-              <button
-                type="button"
-                onClick={resetQuota}
-                className="text-xs font-semibold text-muted-foreground underline underline-offset-2"
-              >
-                Reset kuota lokal di perangkat ini
-              </button>
-            ) : null}
             <Button type="submit" size="lg" className="w-full" disabled={submitting || !canSubmit}>
               {submitting ? (
                 <>

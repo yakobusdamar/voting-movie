@@ -31,8 +31,13 @@ interface VotingState {
   results: ResultItem[];
   error: string | null;
   castVote: (payload: { movieId: string; voterName: string }) => Promise<Vote | null>;
-  castVotes: (payloads: { movieId: string; voterName: string }[]) => Promise<Vote[]>;
+  castVotes: (payloads: { movieId: string; voterName: string }[]) => Promise<VoteBatchResult>;
   refreshResults: () => Promise<void>;
+}
+
+export interface VoteBatchResult {
+  success: Vote[];
+  failed: { movieId: string; error?: string }[];
 }
 
 export function countVotesForName(votes: Vote[], name: string): number {
@@ -79,27 +84,36 @@ export const useVotingStore = create<VotingState>((set, get) => ({
       set({
         error: `Maksimal ${MAX_VOTES_PER_PERSON} vote per orang. Kamu cuma sisa ${Math.max(0, MAX_VOTES_PER_PERSON - used)} slot, ${name}!`,
       });
-      return [];
+      return { success: [], failed: payloads.map((p) => ({ movieId: p.movieId })) };
     }
 
-    const newVotes: Vote[] = [];
+    const success: Vote[] = [];
+    const failed: { movieId: string; error?: string }[] = [];
+
     for (const payload of payloads) {
       const res = await apiSubmitVote({ movieId: payload.movieId, voterName: name });
 
       if (res.ok && res.data) {
-        newVotes.push(res.data);
+        success.push(res.data);
       } else {
-        set({ error: res.error ?? `Vote ${payload.movieId} gagal ke kirim.` });
+        failed.push({ movieId: payload.movieId, error: res.error });
       }
     }
 
-    if (newVotes.length > 0) {
-      const votes = [...get().votes, ...newVotes];
+    if (success.length > 0) {
+      const votes = [...get().votes, ...success];
       saveLocalVotes(votes);
       set({ votes, error: null });
     }
 
-    return newVotes;
+    if (failed.length > 0) {
+      set({
+        error:
+          `${failed.length} vote gagal ke kirim. Coba lagi untuk film yang gagal.`,
+      });
+    }
+
+    return { success, failed };
   },
 
   refreshResults: async () => {
