@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#fff9e6" />
+    <title>Voting Film — OMK Lingkungan FX</title>
+    <script>
+      (function () {
+        var base = "/voting-movie/";
+        var m = location.search.match(/^\?path=(.*)$/);
+        if (m) {
+          var decoded = decodeURIComponent(m[1]);
+          var trailing = location.search.substring(("?path=" + m[1]).length);
+          history.replaceState(null, "", base + decoded + trailing + location.hash);
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

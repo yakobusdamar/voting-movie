@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Mengalihkan...</title>
+    <script>
+      (function () {
+        var base = "/voting-movie/";
+        var rest = location.pathname.replace(base, "");
+        var search = location.search;
+        var hash = location.hash;
+        var q = rest ? "?path=" + encodeURIComponent(rest) + search : search;
+        location.replace(base + "index.html" + q + hash);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Mengalihkan...</p>
+  </body>
+</html>
