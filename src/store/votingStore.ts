@@ -4,93 +4,61 @@ import { getResults, submitVote as apiSubmitVote } from "@/api/client";
 import { fallbackMovies } from "@/data/movies";
 import type { Movie, ResultItem, Vote } from "@/lib/types";
 
+export const MAX_VOTES_PER_PERSON = 3;
+
 interface VotingState {
   movies: Movie[];
   votes: Vote[];
   results: ResultItem[];
   error: string | null;
-  usingFallback: boolean;
   castVote: (payload: { movieId: string; voterName: string }) => Promise<Vote | null>;
   refreshResults: () => Promise<void>;
 }
 
-const STORAGE_KEY = "omk-fx-votes";
-
-function loadLocalVotes(): Vote[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Vote[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveLocalVotes(votes: Vote[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(votes));
-  } catch {
-    // localStorage penuh / tidak tersedia — abaikan
-  }
+export function countVotesForName(votes: Vote[], name: string): number {
+  const key = name.trim().toLowerCase();
+  return votes.filter((v) => v.voterName.trim().toLowerCase() === key).length;
 }
 
 export const useVotingStore = create<VotingState>((set, get) => ({
   movies: fallbackMovies,
-  votes: loadLocalVotes(),
+  votes: [],
   results: [],
   error: null,
-  usingFallback: false,
 
   castVote: async ({ movieId, voterName }) => {
-    const res = await apiSubmitVote({ movieId, voterName });
+    const name = voterName.trim() || "Anonim";
+    const used = countVotesForName(get().votes, name);
+
+    if (used >= MAX_VOTES_PER_PERSON) {
+      set({
+        error: `Maksimal ${MAX_VOTES_PER_PERSON} vote per orang. Udah habis quota kamu, ${name}!`,
+      });
+      return null;
+    }
+
+    const res = await apiSubmitVote({ movieId, voterName: name });
 
     if (res.ok && res.data) {
-      const votes = [...get().votes, res.data];
-      saveLocalVotes(votes);
-      set({ votes, error: null, usingFallback: false });
+      set({ votes: [...get().votes, res.data], error: null });
       return res.data;
     }
 
-    const offlineVote: Vote = {
-      id: `local-${Date.now()}`,
-      movieId,
-      voterName,
-      createdAt: new Date().toISOString(),
-    };
-    const votes = [...get().votes, offlineVote];
-    saveLocalVotes(votes);
-    set({ votes, error: res.error ?? null, usingFallback: true });
-    return offlineVote;
+    set({ error: res.error ?? "Waduh, vote-nya gagal ke kirim. Coba lagi ya!" });
+    return null;
   },
 
   refreshResults: async () => {
     const res = await getResults();
 
     if (res.ok && res.data) {
-      set({ results: res.data, error: null, usingFallback: false });
+      set({ results: res.data, error: null });
       return;
     }
 
-    const movies = get().movies;
-    const votes = get().votes;
-    const counts = votes.reduce<Record<string, number>>((acc, v) => {
-      acc[v.movieId] = (acc[v.movieId] ?? 0) + 1;
-      return acc;
-    }, {});
-
-    const localResults: ResultItem[] = movies
-      .map((m) => ({
-        movieId: m.id,
-        title: m.title,
-        poster: m.poster,
-        count: counts[m.id] ?? 0,
-      }))
-      .filter((r) => r.count > 0)
-      .sort((a, b) => b.count - a.count);
-
     set({
-      results: localResults,
-      error: res.error ?? null,
-      usingFallback: true,
+      results: [],
+      error: res.error ?? "Waduh, list vote-nya lagi error. Coba refresh atau balik lagi nanti ya!",
     });
   },
 }));

@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CloudAlert, RefreshCw } from "lucide-react";
+import { CalendarClock, RefreshCw, TriangleAlert } from "lucide-react";
 
 import { VoteBar } from "@/components/VoteBar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { MOVIE_NIGHT } from "@/lib/event";
 import { useMovies } from "@/hooks/useMovies";
 import { useVotes } from "@/hooks/useVotes";
 
 export function ResultsPage() {
   const { movies } = useMovies();
-  const { results, usingFallback, error, refreshResults } = useVotes();
+  const { results, error, refreshResults } = useVotes();
   const [refreshing, setRefreshing] = useState(false);
 
   const total = results.reduce((sum, r) => sum + r.count, 0);
@@ -46,7 +47,7 @@ export function ResultsPage() {
           <h1 className="text-2xl font-extrabold sm:text-3xl">Papan Hasil Voting</h1>
           <p className="text-muted-foreground">
             {total > 0
-              ? `Total ${total} suara masuk. Update otomatis tiap 30 detik.`
+              ? `Total ${total} suara masuk. Auto-update tiap 30 detik.`
               : "Belum ada suara masuk. Yuk vote duluan!"}
           </p>
         </div>
@@ -56,25 +57,34 @@ export function ResultsPage() {
         </Button>
       </section>
 
-      {usingFallback ? (
-        <Alert variant="warning">
-          <CloudAlert className="h-4 w-4" aria-hidden="true" />
-          <AlertTitle>Hasil tersimpan lokal</AlertTitle>
+      <Alert variant="default" className="bg-primary">
+        <CalendarClock className="h-4 w-4" aria-hidden="true" />
+        <AlertTitle>Nonton bareng {MOVIE_NIGHT.fullLabel}</AlertTitle>
+        <AlertDescription>
+          Film pemenangnya kita tonton bareng. Sampai ketemu di sesi nonton!
+        </AlertDescription>
+      </Alert>
+
+      {error ? (
+        <Alert variant="destructive">
+          <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+          <AlertTitle>Waduh, list vote-nya error! 😱</AlertTitle>
           <AlertDescription>
-            Server voting tidak terjangkau. Hasil berikut adalah rekap dari perangkat ini.
-            {error ? ` (${error})` : ""}
+            {error}. Coba pencet tombol Perbarui atau refresh halamannya ya.
           </AlertDescription>
         </Alert>
       ) : null}
 
-      {ranked.length === 0 ? (
+      {!error && ranked.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="mb-4 text-muted-foreground">Belum ada voting untuk hari ini.</p>
           <Button asChild>
-            <Link to="/vote">Vote Sekarang</Link>
+            <Link to="/">Vote Sekarang</Link>
           </Button>
         </Card>
-      ) : (
+      ) : null}
+
+      {ranked.length > 0 ? (
         <div className="space-y-5">
           {ranked.map((r) => (
             <VoteBar
@@ -86,12 +96,12 @@ export function ResultsPage() {
             />
           ))}
         </div>
-      )}
+      ) : null}
 
       {total > 0 ? (
         <p className="text-sm text-muted-foreground">
-          Film dengan suara terbanyak jadi tontonan besok. Kategori rating bukan penentu — yang
-          penting suara OMK! 🎉
+          Film paling banyak suara jadi tontonan {MOVIE_NIGHT.fullLabel}. Kategori rating bukan
+          penentu — yang penting suara OMK! 🎉
         </p>
       ) : null}
     </div>

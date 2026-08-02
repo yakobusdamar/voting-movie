@@ -1,8 +1,9 @@
 import type { ApiResponse, ResultItem, Vote } from "@/lib/types";
 
 const API_BASE = import.meta.env.VITE_API_BASE as string | undefined;
+const API_TOKEN = import.meta.env.VITE_API_TOKEN as string | undefined;
 
-export const API_CONFIGURED = Boolean(API_BASE);
+export const API_CONFIGURED = Boolean(API_BASE && API_TOKEN);
 
 async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>> {
   if (!API_BASE) {
@@ -17,6 +18,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse
       ...init,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${API_TOKEN ?? ""}`,
         ...(init?.headers ?? {}),
       },
       signal: controller.signal,

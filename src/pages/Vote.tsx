@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Check, Loader2, PartyPopper } from "lucide-react";
+import { CalendarClock, Check, Loader2, PartyPopper } from "lucide-react";
 
-import { PlatformBadges } from "@/components/PlatformBadge";
 import { RatingBadge } from "@/components/RatingBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { MOVIE_NIGHT } from "@/lib/event";
 import { useMovies } from "@/hooks/useMovies";
 import { useVotes } from "@/hooks/useVotes";
+import { countVotesForName, MAX_VOTES_PER_PERSON } from "@/store/votingStore";
 
 export function VotePage() {
   const { movies } = useMovies();
-  const { vote, usingFallback: voteFallback } = useVotes();
+  const { vote, votes, error } = useVotes();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -24,6 +25,9 @@ export function VotePage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const usedVotes = countVotesForName(votes, voterName);
+  const quotaLeft = Math.max(0, MAX_VOTES_PER_PERSON - usedVotes);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,7 +43,7 @@ export function VotePage() {
     if (result) {
       setDone(selected.title);
     } else {
-      setSubmitError("Voting gagal dikirim. Coba lagi ya.");
+      setSubmitError(error ?? "Waduh, vote-nya gagal ke kirim. Coba lagi ya!");
     }
   }
 
@@ -54,7 +58,8 @@ export function VotePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            Kamu memilih <strong>{done}</strong>. Besok kita lihat hasilnya di papan voting.
+            Kamu memilih <strong>{done}</strong>. Nonton barengnya <strong>{MOVIE_NIGHT.dateLabel}</strong> jam{" "}
+            <strong>{MOVIE_NIGHT.timeLabel}</strong>, jangan lupa!
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
             <Button asChild>
@@ -74,23 +79,23 @@ export function VotePage() {
       <section className="space-y-1">
         <h1 className="text-2xl font-extrabold sm:text-3xl">Vote film pilihanmu 🍿</h1>
         <p className="text-muted-foreground">
-          Mau nonton apa besok? Pilih satu film di bawah, isi nama (boleh panggilan/alias), lalu
-          kirim suara. Film paling banyak suara jadi tontonan besok!
+          Pilih film komedi Indonesia favoritmu di bawah, isi nama (boleh alias), kirim suara.
+          Tiap orang maksimal {MAX_VOTES_PER_PERSON} film. Film paling banyak suara jadi tontonan
+          bareng!
         </p>
       </section>
 
-      {voteFallback ? (
-        <Alert variant="warning">
-          <AlertTitle>Vote tersimpan lokal</AlertTitle>
-          <AlertDescription>
-            Server voting tidak terjangkau. Vote akan tersimpan di perangkat ini untuk sementara.
-          </AlertDescription>
-        </Alert>
-      ) : null}
+      <Alert variant="default" className="bg-primary">
+        <CalendarClock className="h-4 w-4" aria-hidden="true" />
+        <AlertTitle>Nonton bareng {MOVIE_NIGHT.fullLabel}</AlertTitle>
+        <AlertDescription>
+          Yuk ramaikan votingnya, biar besok gak bingung mau nonton apa!
+        </AlertDescription>
+      </Alert>
 
       {submitError ? (
         <Alert variant="destructive">
-          <AlertTitle>Voting gagal</AlertTitle>
+          <AlertTitle>Waduh!</AlertTitle>
           <AlertDescription>{submitError}</AlertDescription>
         </Alert>
       ) : null}
@@ -128,7 +133,6 @@ export function VotePage() {
                     <span>{movie.genre.join(", ")}</span>
                   </div>
                   <RatingBadge imdb={movie.ratings.imdb} local={movie.ratings.local} />
-                  <PlatformBadges platforms={movie.platforms} />
                 </div>
               </CardContent>
             </Card>
@@ -158,13 +162,23 @@ export function VotePage() {
                   maxLength={40}
                   autoComplete="name"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Sisa kuota vote kamu: {quotaLeft} dari {MAX_VOTES_PER_PERSON}
+                </p>
               </div>
-              <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={submitting || quotaLeft <= 0}
+              >
                 {submitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                     Mengirim suara...
                   </>
+                ) : quotaLeft <= 0 ? (
+                  "Kuota vote abis 😅"
                 ) : (
                   "Kirim Suara"
                 )}
@@ -175,7 +189,7 @@ export function VotePage() {
       ) : (
         <Card>
           <CardContent className="py-6 text-center text-muted-foreground">
-            Pilih salah satu film di atas untuk mulai voting.
+            Pilih salah satu film di atas buat mulai voting.
           </CardContent>
         </Card>
       )}
