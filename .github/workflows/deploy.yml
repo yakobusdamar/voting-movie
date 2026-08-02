@@ -29,6 +29,9 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+        env:
+          VITE_API_BASE: ${{ secrets.VITE_API_BASE }}
+          VITE_API_TOKEN: ${{ secrets.VITE_API_TOKEN }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
