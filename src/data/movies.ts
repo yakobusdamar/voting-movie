@@ -1,4 +1,4 @@
-import type { Movie } from "@/lib/types";
+﻿import type { Movie } from "@/lib/types";
 
 export const fallbackMovies: Movie[] = [
   {
@@ -9,7 +9,6 @@ export const fallbackMovies: Movie[] = [
     platforms: ["netflix"],
     verifiedAt: "2026-08-02",
     ratings: { imdb: 7.8, local: 8.0 },
-    poster: "/posters/cek-toko-sebelah.jpg",
     synopsis:
       "Erwin kena PHK lalu disuruh gantikan ayahnya jaga toko kelontong kecil, sambil ketemu lagi mantan cewek dan belajar arti keluarga.",
   },
@@ -21,7 +20,6 @@ export const fallbackMovies: Movie[] = [
     platforms: ["disney-plus"],
     verifiedAt: "2026-08-02",
     ratings: { imdb: 7.7, local: 7.9 },
-    poster: "/posters/imperfect.jpg",
     synopsis:
       "Rara yang insecure soal tubuhnya kerja di perusahaan kosmetik dan harus lawan standar kecantikan yang nggak masuk akal.",
   },
@@ -33,7 +31,6 @@ export const fallbackMovies: Movie[] = [
     platforms: ["netflix", "prime-video"],
     verifiedAt: "2026-08-02",
     ratings: { imdb: 7.6, local: 8.0 },
-    poster: "/posters/keluarga-cemara.jpg",
     synopsis:
       "Abah dan Emak harus mulai hidup sederhana di kampung setelah usaha mereka bangkrut. Penuh tawa dan kehangatan keluarga yang bikin haru.",
   },
@@ -67,7 +64,6 @@ export const fallbackMovies: Movie[] = [
     platforms: ["prime-video", "disney-plus"],
     verifiedAt: "2026-08-02",
     ratings: { imdb: 7.3, local: 7.8 },
-    poster: "/posters/yowis-ben.jpg",
     synopsis:
       "Bayu yang naksir cewek cantik bikin band biar populer di sekolah, pakai bahasa Jawa khas Malang. Cinta anak muda yang seru dan lucu.",
   },
@@ -79,7 +75,6 @@ export const fallbackMovies: Movie[] = [
     platforms: ["netflix"],
     verifiedAt: "2026-08-02",
     ratings: { imdb: 7.3, local: 7.1 },
-    poster: "/posters/milly-mamet.jpg",
     synopsis:
       "Mamet mau nikah sama Milly tapi harus siapin rumah dulu, jadinya kerja keras banget. Perjuangan dan cinta yang realistis dibalut komedi.",
   },
@@ -113,7 +108,6 @@ export const fallbackMovies: Movie[] = [
     platforms: ["netflix", "disney-plus"],
     verifiedAt: "2026-08-02",
     ratings: { imdb: 7.1, local: 7.0 },
-    poster: "/posters/my-stupid-boss.jpg",
     synopsis:
       "Diana kerja di kantor yang bosnya super absurd dan nyebelin, hidupnya jadi kacau-balau lucu. Komedi kantoran yang menghibur banget.",
   },
@@ -125,7 +119,6 @@ export const fallbackMovies: Movie[] = [
     platforms: ["netflix", "prime-video"],
     verifiedAt: "2026-08-02",
     ratings: { imdb: 6.9, local: 7.4 },
-    poster: "/posters/susah-sinyal.jpg",
     synopsis:
       "Ellen yang sibuk kerja harus mikirin anaknya yang lagi marah, pas liburan ke Sumba malah susah sinyal. Drama keluarga dengan candaan khas Ernest.",
   },
@@ -214,7 +207,6 @@ export const fallbackMovies: Movie[] = [
     platforms: ["netflix", "prime-video"],
     verifiedAt: "2026-08-02",
     ratings: { imdb: 6.4, local: 6.9 },
-    poster: "/posters/warkop-dki-reborn-jangkrik-boss.jpg",
     synopsis:
       "Dono, Kasino, dan Indro balik lagi jadi anggota CHIPS, penuh aksi konyol dan lelucon klasik. Nostalgia Warkop yang dihidupkan lagi.",
   },

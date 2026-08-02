@@ -31,6 +31,7 @@ interface VotingState {
   results: ResultItem[];
   error: string | null;
   castVote: (payload: { movieId: string; voterName: string }) => Promise<Vote | null>;
+  castVotes: (payloads: { movieId: string; voterName: string }[]) => Promise<Vote[]>;
   refreshResults: () => Promise<void>;
 }
 
@@ -67,6 +68,39 @@ export const useVotingStore = create<VotingState>((set, get) => ({
 
     set({ error: res.error ?? "Waduh, vote-nya gagal ke kirim. Coba lagi ya!" });
     return null;
+  },
+
+  castVotes: async (payloads) => {
+    const first = payloads[0];
+    const name = (first?.voterName ?? "").trim() || "Anonim";
+    const used = countVotesForName(get().votes, name);
+
+    if (payloads.length > MAX_VOTES_PER_PERSON - used) {
+      set({
+        error: `Maksimal ${MAX_VOTES_PER_PERSON} vote per orang. Kamu cuma sisa ${Math.max(0, MAX_VOTES_PER_PERSON - used)} slot, ${name}!`,
+      });
+      return [];
+    }
+
+    const newVotes: Vote[] = [];
+    for (const payload of payloads) {
+      const res = await apiSubmitVote({ movieId: payload.movieId, voterName: name });
+
+      if (res.ok && res.data) {
+        newVotes.push(res.data);
+      } else {
+        set({ error: res.error ?? `Vote ${payload.movieId} gagal ke kirim.` });
+        break;
+      }
+    }
+
+    if (newVotes.length > 0) {
+      const votes = [...get().votes, ...newVotes];
+      saveLocalVotes(votes);
+      set({ votes, error: null });
+    }
+
+    return newVotes;
   },
 
   refreshResults: async () => {

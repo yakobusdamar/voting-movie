@@ -11,7 +11,6 @@ export interface Movie {
     imdb?: number;
     local?: number;
   };
-  poster?: string;
   synopsis?: string;
 }
 
@@ -32,5 +31,4 @@ export interface ResultItem {
   movieId: string;
   count: number;
   title?: string;
-  poster?: string;
 }
