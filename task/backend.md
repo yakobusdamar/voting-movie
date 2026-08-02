@@ -3,26 +3,22 @@
 > Rujuk `docs/api.md` (spec endpoint), `docs/data-model.md` (model data),
 > dan **`docs/n8n-setup.md`** (panduan langkah demi langkah setup n8n + Google Sheets).
 > Kredensial tidak pernah diletakkan di frontend/GitHub.
-> Penyimpanan: **Google Sheets** (2 sheet: `Movies`, `Votes`).
-> **Daftar film tidak lewat n8n** — hardcoded di `src/data/movies.ts` di frontend.
+> Penyimpanan: **Google Sheets** (cukup 1 sheet `Votes`).
+> **Daftar film tidak di n8n** — hardcoded di `src/data/movies.ts` di frontend.
 
 ## Endpoint
 - [ ] `POST /webhook/voting/vote` — submit vote
   - [ ] Body `{ movieId, voterName }`
-  - [ ] Validasi `movieId` ada di sheet `Movies`
   - [ ] `voterName` opsional → default "Anonim"
   - [ ] Generate `id` + `createdAt` ISO di sisi n8n
   - [ ] Append baris ke sheet `Votes`
   - [ ] Return `ApiResponse<Vote>`
 - [ ] `GET /webhook/voting/results` — rekap suara
   - [ ] Baca sheet `Votes`, hitung count per `movieId`
-  - [ ] Join metadata dari sheet `Movies` (title, poster)
-  - [ ] Return `[{ movieId, count, title?, poster? }]`
+  - [ ] Return `[{ movieId, count }]` (frontend cocokkan judul/poster dari hardcoded)
 
 ## Data
-- [ ] Buat spreadsheet Google dengan sheet `Movies` + `Votes` (ikut template di `docs/n8n-setup.md`)
-- [ ] Import daftar film (dari `src/data/movies.ts`) ke sheet `Movies`
-- [ ] Verifikasi data film sesuai skema `Movie`
+- [ ] Buat spreadsheet Google dengan sheet `Votes` (ikut template di `docs/n8n-setup.md`)
 
 ## Error Handling
 - [ ] Response selalu `ApiResponse<T>` (`ok`, `data?`, `error?`)

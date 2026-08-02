@@ -14,7 +14,7 @@
 | `/webhook/voting/results` | GET | Rekap jumlah suara per film | — | `ApiResponse<ResultItem[]>` |
 
 > **Daftar film tidak lewat API.** Film hardcoded di `src/data/movies.ts` di frontend.
-> n8n hanya mengurusi vote + hasil.
+> n8n hanya mengurusi vote + hasil (cukup satu sheet `Votes`).
 
 ## Bentuk Respon Standar
 
@@ -41,9 +41,9 @@ interface ApiResponse<T> {
 }
 ```
 
-### POST /vote → 400 (film tidak valid)
+### POST /vote → 400 (movieId kosong)
 ```json
-{ "ok": false, "error": "movieId tidak ditemukan di daftar film" }
+{ "ok": false, "error": "movieId wajib diisi" }
 ```
 
 ### GET /results → 200
@@ -51,15 +51,15 @@ interface ApiResponse<T> {
 {
   "ok": true,
   "data": [
-    { "movieId": "cek-toko-sebelah", "count": 5, "title": "Cek Toko Sebelah", "poster": "" },
-    { "movieId": "yowis-ben", "count": 3, "title": "Yowis Ben", "poster": "" }
+    { "movieId": "cek-toko-sebelah", "count": 5 },
+    { "movieId": "yowis-ben", "count": 3 }
   ]
 }
 ```
 
 ## Aturan di Sisi n8n
 
-- Validasi `movieId` ada di daftar film.
 - `voterName` opsional (bisa kosong / default "Anonim").
 - Simpan `createdAt` ISO datetime dari sisi n8n.
-- `/results` mengembalikan agregasi `[{ movieId, count }]` beserta metadata film (title, poster) agar frontend tidak perlu double-fetch.
+- `/results` mengembalikan agregasi `[{ movieId, count }]`. Frontend mencocokkan
+  `movieId` → judul/poster dari data hardcoded (`src/data/movies.ts`).

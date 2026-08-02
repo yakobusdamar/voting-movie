@@ -19,7 +19,7 @@
 - [ ] Susun daftar film hardcoded `src/data/movies.ts` (sumber tunggal frontend)
 
 ## Fase 2 — Backend n8n @ sumopod
-- [ ] Buat spreadsheet Google (`Movies` + `Votes`)
+- [ ] Buat spreadsheet Google (sheet `Votes`)
 - [ ] Buat webhook `POST /webhook/voting/vote`
 - [ ] Buat webhook `GET /webhook/voting/results`
 - [ ] Validasi: movieId harus ada, voterName opsional

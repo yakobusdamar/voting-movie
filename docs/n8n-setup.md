@@ -3,16 +3,17 @@
 Backend memakai **n8n @ sumopod** + **Google Sheets** sebagai database.
 Dokumen ini memandu pembuatan 2 webhook sesuai `docs/api.md`.
 
-> **Daftar film TIDAK lewat n8n.** Film hardcoded di `src/data/movies.ts` di frontend
-> (dikelola agent). Sheet `Movies` di Google Sheets tetap dipakai n8n untuk:
-> validasi `movieId` saat vote + ambil `title`/`poster` saat hitung hasil.
+> **Daftar film TIDAK di n8n.** Film hardcoded di `src/data/movies.ts` di frontend.
+> n8n hanya menyimpan vote dan menghitung hasil. Frontend yang mencocokkan
+> `movieId` → judul/poster dari data hardcoded.
+> Tidak perlu sheet `Movies` — cukup **satu sheet `Votes`**.
 
 ## Ringkasan
 
 | Endpoint | Method | Fungsi |
 |---|---|---|
 | `/webhook/voting/vote` | POST | Terima vote, simpan baris ke sheet `Votes` |
-| `/webhook/voting/results` | GET | Rekap jumlah suara per film |
+| `/webhook/voting/results` | GET | Hitung jumlah suara per `movieId` |
 
 Semua respon wajib format `ApiResponse<T>`:
 ```json
@@ -23,28 +24,15 @@ Semua respon wajib format `ApiResponse<T>`:
 
 ## 1. Siapkan Google Sheets
 
-Buat 1 spreadsheet baru (contoh nama: **Voting Film OMK FX**) berisi 2 sheet:
+Buat 1 spreadsheet (contoh nama: **Voting Film OMK FX**) berisi **satu sheet `Votes`**:
 
-### Sheet `Movies`
-| id | title | year | genre | platforms | verifiedAt | imdb | local | poster | synopsis |
-|---|---|---|---|---|---|---|---|---|---|
-| warkop-dki-reborn | Warkop DKI Reborn: Jangkrik Boss! | 2016 | Komedi | netflix, prime-video | 2026-08-02 | 6.6 | 6.9 |  | Donny, Kasino... |
-| cek-toko-sebelah | Cek Toko Sebelah | 2016 | Komedi, Drama | netflix | 2026-08-02 | 7.2 | 8.0 |  | Erwin, manajer... |
-
-> `platforms` dipisah koma: `netflix, prime-video`. `genre` juga dipisah koma.
-> Bisa diisi dari `src/data/movies.ts` di repo (tidak wajib, tapi dipakai untuk join hasil).
-
-### Sheet `Votes`
 | id | movieId | voterName | createdAt |
 |---|---|---|---|
 | v-1 | cek-toko-sebelah | Budi | 2026-08-02T19:30:00.000Z |
 | v-2 | yowis-ben | Anonim | 2026-08-02T19:31:00.000Z |
 
-> Kolom `id` diisi workflow (bisa `v-<timestamp>`), bukan manual.
-
-### Catatan header
-- Baris 1 = header persis sesuai nama kolom di atas.
-- Jangan beri spasi ekstra / huruf kapital berbeda — n8n mencocokkan nama kolom.
+- Baris 1 = header persis sesuai nama kolom (tanpa spasi ekstra).
+- Kolom `id` diisi workflow (bisa `v-<timestamp>`), bukan manual.
 
 ---
 
@@ -68,19 +56,7 @@ Node (urutan):
    - HTTP Method: `POST`
    - Path: `voting/vote`
    - Respond: `Using Respond to Webhook node`
-2. **Google Sheets** — operation `Get Many Records` (sheet `Movies`)
-   - Credential: Google Sheets OMK
-   - Spreadsheet ID: `<SPREADSHEET_ID>`
-   - Sheet: `Movies`
-   - Options → Filter: `id` sama dengan `{{ $json.body.movieId }}`
-3. **IF** — cek validasi
-   - Conditions: `{{ $json.id }}` (ada) — **empty → invalid**
-   - Branch valid → lanjut ke Append
-   - Branch invalid → **Respond to Webhook** dengan status 400:
-     ```json
-     { "ok": false, "error": "movieId tidak ditemukan di daftar film" }
-     ```
-4. **Code** — siapkan baris baru
+2. **Code** — siapkan baris baru
    ```js
    const body = $input.first().json.body || {};
    const movieId = String(body.movieId || "").trim();
@@ -89,19 +65,23 @@ Node (urutan):
    const createdAt = new Date().toISOString();
    return [{ json: { id, movieId, voterName, createdAt } }];
    ```
-5. **Google Sheets** — operation `Append Row` (sheet `Votes`)
+3. **Google Sheets** — operation `Append Row` (sheet `Votes`)
    - Credential: Google Sheets OMK
    - Spreadsheet ID: `<SPREADSHEET_ID>`
    - Sheet: `Votes`
    - Options → Fields to Send: `All Fields`
    - (Default) otomatis memetakan `id`, `movieId`, `voterName`, `createdAt` dari item input
-6. **Respond to Webhook**
+4. **Respond to Webhook**
    - Respond With: `JSON`
    - Response Body:
      ```json
      { "ok": true, "data": { "id": "{{ $('Code').item.json.id }}", "movieId": "{{ $('Code').item.json.movieId }}", "voterName": "{{ $('Code').item.json.voterName }}", "createdAt": "{{ $('Code').item.json.createdAt }}" }, "error": null }
      ```
    - Content Type: `application/json`
+
+> Opsional validasi: tambah node **IF** setelah Webhook
+> `{{ $json.body.movieId }}` tidak boleh kosong → kalau kosong, Respond status 400
+> `{ "ok": false, "error": "movieId wajib diisi" }`.
 
 ---
 
@@ -110,33 +90,23 @@ Node (urutan):
 Node (urutan):
 1. **Webhook** — GET, Path `voting/results`
 2. **Google Sheets** — `Get Many Records` (sheet `Votes`)
-3. **Google Sheets** — `Get Many Records` (sheet `Movies`)
-4. **Code** — agregasi + join
+3. **Code** — hitung suara per `movieId`
    ```js
-   const votes = $("Google Sheets").first().all();
-   const movies = $("Google Sheets").all().at(1).all();
+   const votes = $input.all();
    const counts = {};
    for (const v of votes) {
      const id = v.json.movieId;
      counts[id] = (counts[id] || 0) + 1;
    }
-   const titleMap = {};
-   const posterMap = {};
-   for (const m of movies) {
-     titleMap[m.json.id] = m.json.title;
-     posterMap[m.json.id] = m.json.poster;
-   }
    const data = Object.entries(counts)
-     .map(([movieId, count]) => ({
-       movieId,
-       count,
-       title: titleMap[movieId],
-       poster: posterMap[movieId],
-     }))
+     .map(([movieId, count]) => ({ movieId, count }))
      .sort((a, b) => b.count - a.count);
    return [{ json: { ok: true, data, error: null } }];
    ```
-5. **Respond to Webhook** — JSON dengan body `{{ $json }}`
+4. **Respond to Webhook** — JSON dengan body `{{ $json }}`
+
+> Frontend mencocokkan `movieId` → judul/poster dari data hardcoded, jadi n8n
+> tidak perlu mengirim `title`/`poster`.
 
 ---
 
@@ -151,9 +121,9 @@ Node (urutan):
 - Uji dengan Postman / curl (lihat `docs/api.md` untuk contoh request/response).
 
 ## Checklist
-- [ ] Spreadsheet 2 sheet (`Movies`, `Votes`) siap
+- [ ] Spreadsheet dengan sheet `Votes` siap
 - [ ] Credential Google Sheets OAuth terhubung
-- [ ] Workflow POST `/vote` menambah baris di sheet `Votes` (valid + invalid movieId)
-- [ ] Workflow GET `/results` return rekap `{ movieId, count, title, poster }`
+- [ ] Workflow POST `/vote` menambah baris di sheet `Votes`
+- [ ] Workflow GET `/results` return rekap `[{ movieId, count }]`
 - [ ] Semua workflow **Active**
 - [ ] `VITE_API_BASE` benar di `.env.local` frontend

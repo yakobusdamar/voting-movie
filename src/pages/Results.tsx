@@ -59,9 +59,10 @@ export function ResultsPage() {
       {usingFallback ? (
         <Alert variant="warning">
           <CloudAlert className="h-4 w-4" aria-hidden="true" />
-          <AlertTitle>Data lama / lokal</AlertTitle>
+          <AlertTitle>Hasil tersimpan lokal</AlertTitle>
           <AlertDescription>
-            Hasil berikut adalah rekap terakhir yang tersimpan. {error ? ` (${error})` : ""}
+            Server voting tidak terjangkau. Hasil berikut adalah rekap dari perangkat ini.
+            {error ? ` (${error})` : ""}
           </AlertDescription>
         </Alert>
       ) : null}
