@@ -10,9 +10,11 @@
 
 | Endpoint | Method | Deskripsi | Request | Response |
 |---|---|---|---|---|
-| `/webhook/voting/movies` | GET | Daftar film komedi Indonesia tersedia di platform streaming + rating | — | `ApiResponse<Movie[]>` |
 | `/webhook/voting/vote` | POST | Submit vote | `{ movieId, voterName }` | `ApiResponse<Vote>` |
 | `/webhook/voting/results` | GET | Rekap jumlah suara per film | — | `ApiResponse<ResultItem[]>` |
+
+> **Daftar film tidak lewat API.** Film hardcoded di `src/data/movies.ts` di frontend.
+> n8n hanya mengurusi vote + hasil.
 
 ## Bentuk Respon Standar
 
@@ -25,24 +27,6 @@ interface ApiResponse<T> {
 ```
 
 ## Contoh
-
-### GET /movies → 200
-```json
-{
-  "ok": true,
-  "data": [
-    {
-      "id": "warkop-dki-reborn",
-      "title": "Warkop DKI Reborn: Jangkrik Boss! Part 1",
-      "year": 2016,
-      "genre": ["Komedi"],
-      "platforms": ["netflix", "prime-video"],
-      "verifiedAt": "2026-08-02",
-      "ratings": { "imdb": 6.6 }
-    }
-  ]
-}
-```
 
 ### POST /vote → 200
 ```json
@@ -62,9 +46,20 @@ interface ApiResponse<T> {
 { "ok": false, "error": "movieId tidak ditemukan di daftar film" }
 ```
 
+### GET /results → 200
+```json
+{
+  "ok": true,
+  "data": [
+    { "movieId": "cek-toko-sebelah", "count": 5, "title": "Cek Toko Sebelah", "poster": "" },
+    { "movieId": "yowis-ben", "count": 3, "title": "Yowis Ben", "poster": "" }
+  ]
+}
+```
+
 ## Aturan di Sisi n8n
 
-- Validasi `movieId` harus ada di daftar film.
+- Validasi `movieId` ada di daftar film.
 - `voterName` opsional (bisa kosong / default "Anonim").
 - Simpan `createdAt` ISO datetime dari sisi n8n.
 - `/results` mengembalikan agregasi `[{ movieId, count }]` beserta metadata film (title, poster) agar frontend tidak perlu double-fetch.

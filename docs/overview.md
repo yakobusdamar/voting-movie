@@ -30,8 +30,9 @@ platform streaming (**Netflix**, **Prime Video**, **Disney+ Hotstar**), setiap f
 | Framework | React + Vite + TypeScript |
 | Styling | Tailwind CSS + shadcn/ui (neobrutalism) |
 | State | Zustand |
+| Data film | Hardcoded di `src/data/movies.ts` (dikelola agent) |
+| Backend | n8n webhook @ sumopod (vote + hasil saja, Google Sheets) |
 | Deploy | GitHub Pages |
-| Backend | n8n webhook @ sumopod |
 
 ## Status
 

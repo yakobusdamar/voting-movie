@@ -22,7 +22,7 @@
 - [ ] Kumpulkan rating lokal bila ada (opsional)
 - [ ] Ambil poster stabil (atau simpan di `public/posters/`)
 - [ ] Tulis sinopsis singkat (opsional)
-- [ ] Update fallback `src/data/movies.ts` + data n8n
+- [ ] Update `src/data/movies.ts` (sumber tunggal frontend) + sheet `Movies` di Google Sheets
 
 ## Daftar Film (isi seiring verifikasi)
 > Format: `- [ ] Judul (tahun) | IMDb: x.x | Platforms: netflix, prime-video | verifiedAt: YYYY-MM-DD`
@@ -33,4 +33,4 @@
 - [ ] Semua film di daftar **available** di minimal satu platform (di-verify)
 - [ ] Semua film punya rating
 - [ ] `verifiedAt` terisi untuk semua film
-- [ ] Fallback statis sinkron dengan data n8n
+- [ ] `src/data/movies.ts` sinkron dengan sheet `Movies` di Google Sheets

@@ -6,7 +6,6 @@ import { RatingBadge } from "@/components/RatingBadge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useMovies } from "@/hooks/useMovies";
 import { formatPlatforms } from "@/lib/platforms";
 
@@ -15,20 +14,8 @@ const fallbackPoster =
 
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { movies, isLoading, error } = useMovies();
+  const { movies } = useMovies();
   const navigate = useNavigate();
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-40" />
-        <div className="grid gap-6 sm:grid-cols-[220px_1fr]">
-          <Skeleton className="aspect-[2/3] w-full" />
-          <Skeleton className="h-40 w-full" />
-        </div>
-      </div>
-    );
-  }
 
   const movie = movies.find((m) => m.id === id);
 
@@ -41,7 +28,7 @@ export function MovieDetailPage() {
         </Button>
         <Alert variant="destructive">
           <AlertTitle>Film tidak ditemukan</AlertTitle>
-          <AlertDescription>{error ?? "Film yang kamu cari tidak ada di daftar."}</AlertDescription>
+          <AlertDescription>Film yang kamu cari tidak ada di daftar.</AlertDescription>
         </Alert>
       </div>
     );

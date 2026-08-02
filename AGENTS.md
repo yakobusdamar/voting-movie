@@ -43,17 +43,18 @@ API + database).
 ```
 [ HP user ] --> GitHub Pages (static: React/Vite)
                     |
-                    | fetch
+                    | fetch (vote & hasil saja)
                     v
             [ n8n webhook @ sumopod ]
-               - endpoint film  (GET /movies)
                - endpoint vote  (POST /vote)
-               - penyimpanan data (built-in n8n / DB)
+               - endpoint hasil (GET /results)
+               - penyimpanan data (Google Sheets)
 ```
 
 - Frontend 100% static di GitHub Pages (tanpa server sendiri).
-- Semua data (daftar film + hasil voting) hidup di **n8n sumopod**.
-- Frontend memanggil webhook n8n untuk baca daftar film dan kirim/rekap voting.
+- **Daftar film hardcoded** di `src/data/movies.ts` (dikelola manual/scraping oleh agent, update via commit).
+- Data voting + hasil hidup di **n8n sumopod** (Google Sheets).
+- Frontend memanggil webhook n8n hanya untuk kirim vote dan baca hasil.
 - Tidak ada secret/API key di frontend. Semua kredensial di sisi n8n.
 
 ## Model Data
@@ -103,12 +104,12 @@ Base URL: `https://<instance>.sumopod.com/webhook/...` (isi dari environment, bu
 
 | Endpoint | Method | Deskripsi |
 |---|---|---|
-| `/webhook/voting/movies` | GET | Daftar film komedi Indonesia yang tersedia di platform streaming + rating |
 | `/webhook/voting/vote` | POST | Submit vote `{ movieId, voterName }` |
 | `/webhook/voting/results` | GET | Rekap hasil voting (jumlah suara per film) |
 
+- Daftar film **tidak** lewat n8n — sudah hardcoded di `src/data/movies.ts`.
 - Semua konsumsi via env variable `VITE_API_BASE`.
-- Jika n8n offline, frontend boleh fallback ke data statis (`src/data/movies.ts`) dengan banner "data lama".
+- Jika n8n offline, vote tersimpan lokal (localStorage) + banner "tersimpan lokal".
 - Tangani error n8n dengan `ApiResponse.error` yang jelas + UI error state.
 
 ## Struktur Direktori (target)

@@ -1,16 +1,15 @@
 import { create } from "zustand";
 
-import { getMovies, getResults, submitVote as apiSubmitVote, fallbackMovies } from "@/api/client";
+import { getResults, submitVote as apiSubmitVote } from "@/api/client";
+import { fallbackMovies } from "@/data/movies";
 import type { Movie, ResultItem, Vote } from "@/lib/types";
 
 interface VotingState {
   movies: Movie[];
-  isLoading: boolean;
-  error: string | null;
-  usingFallback: boolean;
   votes: Vote[];
   results: ResultItem[];
-  loadMovies: () => Promise<void>;
+  error: string | null;
+  usingFallback: boolean;
   castVote: (payload: { movieId: string; voterName: string }) => Promise<Vote | null>;
   refreshResults: () => Promise<void>;
 }
@@ -35,35 +34,11 @@ function saveLocalVotes(votes: Vote[]) {
 }
 
 export const useVotingStore = create<VotingState>((set, get) => ({
-  movies: [],
-  isLoading: false,
-  error: null,
-  usingFallback: false,
+  movies: fallbackMovies,
   votes: loadLocalVotes(),
   results: [],
-
-  loadMovies: async () => {
-    set({ isLoading: true, error: null });
-
-    const res = await getMovies();
-
-    if (res.ok && res.data && res.data.length > 0) {
-      set({
-        movies: res.data,
-        isLoading: false,
-        usingFallback: false,
-        error: null,
-      });
-      return;
-    }
-
-    set({
-      movies: fallbackMovies,
-      isLoading: false,
-      usingFallback: true,
-      error: res.error ?? null,
-    });
-  },
+  error: null,
+  usingFallback: false,
 
   castVote: async ({ movieId, voterName }) => {
     const res = await apiSubmitVote({ movieId, voterName });
@@ -71,7 +46,7 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     if (res.ok && res.data) {
       const votes = [...get().votes, res.data];
       saveLocalVotes(votes);
-      set({ votes, error: null });
+      set({ votes, error: null, usingFallback: false });
       return res.data;
     }
 

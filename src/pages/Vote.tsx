@@ -8,12 +8,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useMovies } from "@/hooks/useMovies";
 import { useVotes } from "@/hooks/useVotes";
 
 export function VotePage() {
-  const { movies, isLoading, error, usingFallback } = useMovies();
+  const { movies } = useMovies();
   const { vote, usingFallback: voteFallback } = useVotes();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -70,26 +69,6 @@ export function VotePage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-40 w-full" />
-      </div>
-    );
-  }
-
-  if (movies.length === 0) {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>Gagal memuat film</AlertTitle>
-        <AlertDescription>
-          {error ?? "Tidak ada film yang bisa ditampilkan."}
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <section className="space-y-1">
@@ -100,9 +79,9 @@ export function VotePage() {
         </p>
       </section>
 
-      {usingFallback || voteFallback ? (
+      {voteFallback ? (
         <Alert variant="warning">
-          <AlertTitle>Data lama</AlertTitle>
+          <AlertTitle>Vote tersimpan lokal</AlertTitle>
           <AlertDescription>
             Server voting tidak terjangkau. Vote akan tersimpan di perangkat ini untuk sementara.
           </AlertDescription>

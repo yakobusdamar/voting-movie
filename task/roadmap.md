@@ -16,14 +16,12 @@
 - [ ] Kumpulkan daftar film komedi Indonesia (kandidat)
 - [ ] Verifikasi ketersediaan di platform (Netflix/Prime Video/Disney+ Hotstar, catat `verifiedAt`)
 - [ ] Kumpulkan rating IMDb / lokal per film
-- [ ] Susun fallback data statis `src/data/movies.ts`
-- [ ] Siapkan skema JSON untuk impor ke n8n
+- [ ] Susun daftar film hardcoded `src/data/movies.ts` (sumber tunggal frontend)
 
 ## Fase 2 — Backend n8n @ sumopod
-- [ ] Buat webhook `GET /webhook/voting/movies`
+- [ ] Buat spreadsheet Google (`Movies` + `Votes`)
 - [ ] Buat webhook `POST /webhook/voting/vote`
 - [ ] Buat webhook `GET /webhook/voting/results`
-- [ ] Isi database n8n dengan daftar film
 - [ ] Validasi: movieId harus ada, voterName opsional
 - [ ] Uji semua endpoint (Postman / curl)
 
@@ -35,7 +33,7 @@
 - [ ] Komponen neobrutalism: MovieCard, RatingBadge, PlatformBadge, VoteBar
 - [ ] Hooks: `useMovies`, `useVotes`
 - [ ] API client (`src/api/client.ts`) dengan error handling
-- [ ] Fallback data statis + banner "data lama" saat n8n offline
+- [ ] Fallback lokal (localStorage) + banner "tersimpan lokal" saat n8n offline
 
 ## Fase 4 — Deploy
 - [ ] Buat workflow GitHub Actions → GitHub Pages

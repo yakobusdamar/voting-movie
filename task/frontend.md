@@ -23,15 +23,16 @@
 - [ ] `Results.tsx` — papan hasil voting real-time
 
 ## State & Data
-- [ ] Zustand store (movies, votes, status loading/error)
-- [ ] `useMovies` hook
+- [ ] Zustand store (movies statis, votes, hasil, status loading/error)
+- [ ] `useMovies` hook (baca film hardcoded)
 - [ ] `useVotes` hook
-- [ ] Fallback `src/data/movies.ts` + banner "data lama"
+- [ ] `src/data/movies.ts` — daftar film hardcoded (sumber tunggal di frontend)
 
 ## API
-- [ ] `src/api/client.ts` (fetch ke `VITE_API_BASE`)
+- [ ] `src/api/client.ts` (fetch ke `VITE_API_BASE` — vote & hasil saja)
 - [ ] Error state UI untuk tiap endpoint
 - [ ] Timeout/abort fetch
+- [ ] Fallback lokal (localStorage) + banner "tersimpan lokal" saat n8n offline
 
 ## Routing
 - [ ] react-router-dom: `/`, `/movies`, `/movies/:id`, `/results`

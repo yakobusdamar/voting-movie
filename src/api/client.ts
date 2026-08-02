@@ -1,5 +1,4 @@
-import { fallbackMovies } from "@/data/movies";
-import type { ApiResponse, Movie, ResultItem, Vote } from "@/lib/types";
+import type { ApiResponse, ResultItem, Vote } from "@/lib/types";
 
 const API_BASE = import.meta.env.VITE_API_BASE as string | undefined;
 
@@ -50,10 +49,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse
   }
 }
 
-export function getMovies(): Promise<ApiResponse<Movie[]>> {
-  return request<Movie[]>("/voting/movies");
-}
-
 export function submitVote(payload: { movieId: string; voterName: string }): Promise<ApiResponse<Vote>> {
   return request<Vote>("/voting/vote", {
     method: "POST",
@@ -64,5 +59,3 @@ export function submitVote(payload: { movieId: string; voterName: string }): Pro
 export function getResults(): Promise<ApiResponse<ResultItem[]>> {
   return request<ResultItem[]>("/voting/results");
 }
-
-export { fallbackMovies };

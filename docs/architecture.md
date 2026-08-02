@@ -5,21 +5,21 @@
 ```
 [ HP user ] --> GitHub Pages (static: React/Vite)
                     |
-                    | fetch
+                    | fetch (vote & hasil saja)
                     v
             [ n8n webhook @ sumopod ]
-               - endpoint film  (GET /movies)
                - endpoint vote  (POST /vote)
                - endpoint hasil (GET /results)
-               - penyimpanan data (built-in n8n / DB)
+               - penyimpanan data (Google Sheets)
 ```
 
 ## Prinsip
 
 - Frontend **100% static** di GitHub Pages — tanpa server sendiri.
-- Semua data (daftar film + hasil voting) hidup di **n8n sumopod**.
-- Frontend hanya memanggil webhook n8n; **tidak ada secret/API key** di sisi frontend.
-- Jika n8n offline → fallback ke data statis (`src/data/movies.ts`) + banner "data lama".
+- **Daftar film hardcoded** di `src/data/movies.ts` (dikelola manual/scraping oleh agent).
+- Data voting + hasil hidup di **n8n sumopod** (Google Sheets).
+- Frontend hanya memanggil webhook n8n untuk vote + hasil; **tidak ada secret/API key** di sisi frontend.
+- Jika n8n offline → vote tersimpan lokal (localStorage) + banner "tersimpan lokal".
 
 ## Lapisan Frontend
 
@@ -28,8 +28,8 @@
 | Pages | `src/pages/` | Vote (utama, pilih film), Movies (daftar), MovieDetail (detail), Results (papan hasil) |
 | Components | `src/components/` | shadcn/ui + komponen kustom neobrutalism |
 | Hooks | `src/hooks/` | `useMovies`, `useVotes` |
-| API | `src/api/client.ts` | wrapper fetch ke webhook n8n |
-| Data fallback | `src/data/movies.ts` | daftar film statis saat n8n offline |
+| API | `src/api/client.ts` | wrapper fetch ke webhook n8n (vote & hasil) |
+| Data film | `src/data/movies.ts` | daftar film statis (hardcoded) |
 | State | Zustand store | cache movies, status voting |
 
 ## Env

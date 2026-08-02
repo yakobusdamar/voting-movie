@@ -4,12 +4,9 @@
 > dan **`docs/n8n-setup.md`** (panduan langkah demi langkah setup n8n + Google Sheets).
 > Kredensial tidak pernah diletakkan di frontend/GitHub.
 > Penyimpanan: **Google Sheets** (2 sheet: `Movies`, `Votes`).
+> **Daftar film tidak lewat n8n** — hardcoded di `src/data/movies.ts` di frontend.
 
 ## Endpoint
-- [ ] `GET /webhook/voting/movies` — daftar film
-  - [ ] Baca sheet `Movies`
-  - [ ] Format ulang ke `Movie[]` (genre/platforms split koma)
-  - [ ] Return `ApiResponse<Movie[]>`
 - [ ] `POST /webhook/voting/vote` — submit vote
   - [ ] Body `{ movieId, voterName }`
   - [ ] Validasi `movieId` ada di sheet `Movies`

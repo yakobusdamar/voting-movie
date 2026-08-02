@@ -6,7 +6,6 @@ import { VoteBar } from "@/components/VoteBar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useMovies } from "@/hooks/useMovies";
 import { useVotes } from "@/hooks/useVotes";
 
@@ -94,8 +93,6 @@ export function ResultsPage() {
           penting suara OMK! 🎉
         </p>
       ) : null}
-
-      {ranked.length === 0 ? <Skeleton className="h-10 w-full" /> : null}
     </div>
   );
 }
