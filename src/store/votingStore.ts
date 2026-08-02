@@ -6,6 +6,25 @@ import type { Movie, ResultItem, Vote } from "@/lib/types";
 
 export const MAX_VOTES_PER_PERSON = 3;
 
+const STORAGE_KEY = "omk-fx-votes";
+
+function loadLocalVotes(): Vote[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Vote[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalVotes(votes: Vote[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(votes));
+  } catch {
+    // localStorage penuh / tidak tersedia — abaikan
+  }
+}
+
 interface VotingState {
   movies: Movie[];
   votes: Vote[];
@@ -22,7 +41,7 @@ export function countVotesForName(votes: Vote[], name: string): number {
 
 export const useVotingStore = create<VotingState>((set, get) => ({
   movies: fallbackMovies,
-  votes: [],
+  votes: loadLocalVotes(),
   results: [],
   error: null,
 
@@ -40,7 +59,9 @@ export const useVotingStore = create<VotingState>((set, get) => ({
     const res = await apiSubmitVote({ movieId, voterName: name });
 
     if (res.ok && res.data) {
-      set({ votes: [...get().votes, res.data], error: null });
+      const votes = [...get().votes, res.data];
+      saveLocalVotes(votes);
+      set({ votes, error: null });
       return res.data;
     }
 
