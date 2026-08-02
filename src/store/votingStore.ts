@@ -90,7 +90,6 @@ export const useVotingStore = create<VotingState>((set, get) => ({
         newVotes.push(res.data);
       } else {
         set({ error: res.error ?? `Vote ${payload.movieId} gagal ke kirim.` });
-        break;
       }
     }
 

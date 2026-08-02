@@ -27,6 +27,15 @@ export function VotePage() {
   const selectedCount = selected.size;
   const canSubmit = selectedCount > 0 && quotaLeft > 0;
 
+  function resetQuota() {
+    try {
+      localStorage.removeItem("omk-fx-votes");
+      window.location.reload();
+    } catch {
+      // abaikan
+    }
+  }
+
   function toggleMovie(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -166,7 +175,7 @@ export function VotePage() {
           </CardTitle>
           {selectedCount > 0 ? (
             <p className="text-sm text-muted-foreground">
-              Sisa kuota: {quotaLeft} dari {MAX_VOTES_PER_PERSON}
+              Sisa kuota: {quotaLeft} dari {MAX_VOTES_PER_PERSON} · {usedVotes} vote tersimpan untuk nama ini
             </p>
           ) : null}
         </CardHeader>
@@ -185,6 +194,15 @@ export function VotePage() {
                 autoComplete="name"
               />
             </div>
+            {usedVotes > 0 ? (
+              <button
+                type="button"
+                onClick={resetQuota}
+                className="text-xs font-semibold text-muted-foreground underline underline-offset-2"
+              >
+                Reset kuota lokal di perangkat ini
+              </button>
+            ) : null}
             <Button type="submit" size="lg" className="w-full" disabled={submitting || !canSubmit}>
               {submitting ? (
                 <>
