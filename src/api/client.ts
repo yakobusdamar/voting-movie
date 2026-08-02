@@ -11,7 +11,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
   try {
     const res = await fetch(`${API_BASE}${path}`, {
@@ -38,12 +38,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiResponse
       };
     }
 
-    return body ?? { ok: true, data: undefined as T };
+    // n8n kadang balik objek mentah (bukan wrapper {ok,data}) — normalisasi
+    if (body && typeof body === "object" && "ok" in body) {
+      return body;
+    }
+
+    return { ok: true, data: body as T };
   } catch (err) {
     return {
       ok: false,
       error: err instanceof DOMException && err.name === "AbortError"
-        ? "Waktu tunggu habis. Coba lagi."
+        ? "Server lama bales. Coba lagi ya!"
         : "Gagal terhubung ke server.",
     };
   } finally {
