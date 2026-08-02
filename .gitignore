@@ -1,5 +1,26 @@
+# dependencies
 node_modules
+
+# build
 dist
-.env.local
-.env.*.local
+
+# env & secrets — JANGAN commit file ini
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# log
 *.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea
+.vscode/*
+!.vscode/extensions.json
